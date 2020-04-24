@@ -11,9 +11,9 @@ import java.util.Random;
  * SKILL_STDEV. The formula to calculate the skill level is:
  * 
  * <p>
- * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5
- * SKILL_STDEV = (double) Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5))
- * SKILL_LEVEL = (int) Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
+ * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5 SKILL_STDEV = (double)
+ * Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5)) SKILL_LEVEL = (int)
+ * Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
  * 
  * <p>
  * A skill level of 9 means it always makes the "right" choices (pun intended)

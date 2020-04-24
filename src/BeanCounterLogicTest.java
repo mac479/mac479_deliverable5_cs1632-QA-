@@ -6,7 +6,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -104,7 +103,7 @@ public class BeanCounterLogicTest {
 			if (logic.getRemainingBeanCount() == 0) {
 				low++;
 			}
-			if (high < slotCount - 1) {
+			if (high < slotCount - 2) {
 				high++;
 			}
 
@@ -117,8 +116,7 @@ public class BeanCounterLogicTest {
 					assertTrue(failString, pos > -1 && pos <= j); // Verify each level that can have an in-flight bean
 																	// is within the correct bounds.
 				} else {
-					assertEquals(failString + " " + low + " " + high + " " + j, -1, pos); // Verifies no beans are on
-																							// impossible levels.
+					assertEquals(failString, -1, pos); // Verifies no beans are on impossible levels.
 				}
 			}
 		}
@@ -202,15 +200,15 @@ public class BeanCounterLogicTest {
 		}
 		logic.lowerHalf();
 
-		int count = (int) ((beanCount % 2 == 1) ? ((double) beanCount + 1.0) / 2.0 : (double) beanCount / 2.0);
-		int remain = -1;
+		int count = (beanCount % 2 == 1) ? (beanCount + 1) / 2 : beanCount / 2;
+		int remain = 0;
 		for (int i = 0; i < slotCount; i++) {
 			count -= logic.getSlotBeanCount(i);
 			if (count == 0) {
 				remain = i;
 			}
 		}
-		assertEquals(failString + " " + remain, 0, count); // First verifies correct amount of beans remain.
+		assertEquals(failString, count, 0); // First verifies correct amount of beans remain.
 		assertTrue(failString, slots[remain] >= logic.getSlotBeanCount(remain)); // Verifies final cell with beans has
 																					// decreased at least.
 		for (int i = remain + 1; i < slotCount; i++) {
@@ -242,17 +240,17 @@ public class BeanCounterLogicTest {
 		for (int i = 0; i < slotCount; i++) {
 			slots[i] = logic.getSlotBeanCount(i); // Record normal slot count for testing
 		}
-		logic.upperHalf();
+		logic.lowerHalf();
 
 		int count = (beanCount % 2 == 1) ? (beanCount + 1) / 2 : beanCount / 2;
-		int remain = -1;
+		int remain = 0;
 		for (int i = slotCount - 1; i >= 0; i--) {
 			count -= logic.getSlotBeanCount(i);
 			if (count == 0) {
 				remain = i;
 			}
 		}
-		assertEquals(failString, 0, count); // First verifies correct amount of beans remain.
+		assertEquals(failString, count, 0); // First verifies correct amount of beans remain.
 		assertTrue(failString, slots[remain] >= logic.getSlotBeanCount(remain)); // Verifies final cell with beans has
 																					// decreased at least.
 		for (int i = remain - 1; i >= 0; i++) {
