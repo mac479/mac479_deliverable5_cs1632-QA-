@@ -50,7 +50,7 @@ public class BeanImpl implements Bean {
 		rng = rand;
 		if (!isLuck) {
 			double skillAvg = (double) slotCount * 0.5;
-			double skillStDev = Math.sqrt((double) slotCount * 0.5 * (1 - 0.5));
+			double skillStDev = Math.sqrt((double) slotCount * 0.5 * (1.0 - 0.5));
 			initSkill = (int) Math.round(rand.nextGaussian() * skillStDev * skillAvg);
 		} else {
 			initSkill = -1;

@@ -98,10 +98,12 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @return Average slot number of all the beans in slots.
 	 */
 	public double getAverageSlotBeanCount() {
-		int total = 0;
-		for (int i = 0; i < slotCount; i++)
-			total += slots[i];
-		return ((double) total / (double) slotCount);
+		double average = 0;
+		// Can skip over 0 since it will always give a 0 for the answer.
+		for (int i = 1; i < slotCount; i++) {
+			average += ((double) i * ((double) slots[i] / (double) inSlot.size()));
+		}
+		return average;
 	}
 
 	/**
@@ -111,16 +113,37 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * will be remaining.
 	 */
 	public void upperHalf() {
-		int target = (totalBeans % 2 == 1) ? (totalBeans - 1) / 2 : totalBeans / 2;
-		totalBeans = target;
-		int slotIndex = 0;
-		for (int i = 0; i < target; i++) {
+		boolean isOdd = inSlot.size() % 2 == 1;
+		int target = (isOdd) ? (inSlot.size() - 1) / 2 : inSlot.size() / 2;
+		if (target == 0) {
+			return; // No need to do work if nothings being removed
+		}
+		// Removes bean data from slots
+		for (int j = 0; j < target; j++) {
 			inSlot.remove();
-			if (i == slots[slotIndex]) {
+		}
+		int slotIndex = 0;
+		while (slotIndex < slotCount && slots[slotIndex] == 0) {
+			slotIndex++;
+		}
+		// Adjusts the slot counts
+		for (int i = 0; i < target; i++) {
+			if (i >= slots[slotIndex]) {
 				target -= i;
-				i = 0;
+				i = -1;// the loop will increase it by one and reset it on next pass.
 				slots[slotIndex] = 0;
+				while (slotIndex < slotCount && slots[slotIndex] == 0) {
+					slotIndex++;
+				}
+			}
+		}
+		if (isOdd) {
+			inSlot.remove(); // Odd usually has one left over bean needed for removal
+			while (slotIndex < slotCount && slots[slotIndex] == 0) {
 				slotIndex++;
+			}
+			if (slotIndex != 0) {
+				slots[slotIndex]--;
 			}
 		}
 		slots[slotIndex] -= target;
@@ -133,16 +156,37 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * will be remaining.
 	 */
 	public void lowerHalf() {
-		int target = (totalBeans % 2 == 1) ? (totalBeans - 1) / 2 : totalBeans / 2;
-		totalBeans = target;
-		int slotIndex = slotCount - 1;
-		for (int i = 0; i < target; i++) {
+		boolean isOdd = inSlot.size() % 2 == 1;
+		int target = (isOdd) ? (inSlot.size() - 1) / 2 : inSlot.size() / 2;
+		if (target == 0) {
+			return; // No need to do work if nothings being removed
+		}
+		// Removes bean data from slots
+		for (int j = 0; j < target; j++) {
 			inSlot.removeLast();
-			if (i == slots[slotIndex]) {
+		}
+		int slotIndex = slotCount - 1;
+		while (slotIndex >= 0 && slots[slotIndex] == 0) {
+			slotIndex--;
+		}
+		// Adjusts the slot counts
+		for (int i = 0; i < target; i++) {
+			if (i >= slots[slotIndex]) {
 				target -= i;
-				i = 0;
+				i = -1;// the loop will increase it by one and reset it on next pass.
 				slots[slotIndex] = 0;
+				while (slotIndex >= 0 && slots[slotIndex] == 0) {
+					slotIndex--;
+				}
+			}
+		}
+		if (isOdd) {
+			inSlot.removeLast(); // Odd usually has one left over bean needed for removal
+			while (slotIndex >= 0 && slots[slotIndex] == 0) {
 				slotIndex--;
+			}
+			if (slotIndex != 0) {
+				slots[slotIndex]--;
 			}
 		}
 		slots[slotIndex] -= target;
@@ -160,7 +204,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @param beans array of beans to add to the machine
 	 */
 	public void reset(Bean[] beans) {
-		stepPadding=0;
+		stepPadding = 0;
 		remainingBeans = new LinkedList<BeanImpl>();
 		slots = new int[slotCount];
 		posMap = new int[slotCount];
@@ -174,19 +218,18 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 
 		for (int i = 0; i < totalBeans; i++) {
 			if (beans[i] != null) {
-				BeanImpl newBean=(BeanImpl) beans[i];
+				BeanImpl newBean = (BeanImpl) beans[i];
 				newBean.restart();
 				remainingBeans.add(newBean);
 			}
 		}
 		if (totalBeans != 0) {
-			noBean=false;
+			noBean = false;
 			posMap[0] = 0;
 			inFlight.offerFirst(remainingBeans.remove()); // Pops front of queue to top of map.
-		}
-		else {
-			posMap[0]=NO_BEAN_IN_YPOS;
-			noBean=true;
+		} else {
+			posMap[0] = NO_BEAN_IN_YPOS;
+			noBean = true;
 		}
 		// System.err.println("--------------------------------------------
 		// "+slotCount+" "+inFlight.size()+" "+posMap[slotCount-1]!=NO_BEAN_IN_YPOS+"
@@ -200,7 +243,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * beginning, the machine starts with one bean at the top.
 	 */
 	public void repeat() {
-		stepPadding=0;
+		stepPadding = 0;
 		slots = new int[slotCount];
 		posMap = new int[slotCount];
 		for (int i = 0; i < posMap.length; i++) {
@@ -218,13 +261,12 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		}
 
 		if (totalBeans != 0) {
-			noBean=false;
+			noBean = false;
 			posMap[0] = 0;
 			inFlight.offerFirst(remainingBeans.remove()); // Pops front of queue to top of map.
-		}
-		else {
-			posMap[0]=NO_BEAN_IN_YPOS;
-			noBean=true;
+		} else {
+			posMap[0] = NO_BEAN_IN_YPOS;
+			noBean = true;
 		}
 	}
 
@@ -236,57 +278,54 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @return whether there has been any status change. If there is no change, that
 	 *         means the machine is finished.
 	 */
-	//TODO current method is taking way longer than it should
 	public boolean advanceStep() {// Detects if changes need to be made before acting.
-		if ((remainingBeans.isEmpty() && inFlight.isEmpty())||noBean)
+		if ((remainingBeans.isEmpty() && inFlight.isEmpty()) || noBean)
 			return false;
 
-		//Handle case of the map being 1 tall.
-		if(posMap.length==1) {
-			//Bean is already technically in slot just need to be recorded
+		// Handle case of the map being 1 tall.
+		if (posMap.length == 1) {
+			// Bean is already technically in slot just need to be recorded
 			slots[0]++;
 			inSlot.add(inFlight.pollLast());
-			if(!remainingBeans.isEmpty()) {
-				posMap[0]=0;
+			if (!remainingBeans.isEmpty()) {
+				posMap[0] = 0;
 				inFlight.addFirst(remainingBeans.remove());
-			}
-			else {
-				posMap[0]=NO_BEAN_IN_YPOS;
+			} else {
+				posMap[0] = NO_BEAN_IN_YPOS;
 			}
 			return true;
 		}
-		
-		//Step beans down if possible
-		for(int i=inFlight.size()-1;i>=0 && posMap.length!=1;i--) {
-			if(inFlight.get(i).getChoice()) {
-				posMap[i+stepPadding+1]=posMap[i+stepPadding]+1;
-			}
-			else {
-				posMap[i+stepPadding+1]=posMap[i+stepPadding];
+
+		// Step beans down if possible
+		for (int i = inFlight.size() - 1; i >= 0 && posMap.length != 1; i--) {
+			if (inFlight.get(i).getChoice()) {
+				posMap[i + stepPadding + 1] = posMap[i + stepPadding] + 1;
+			} else {
+				posMap[i + stepPadding + 1] = posMap[i + stepPadding];
 			}
 		}
-		
-		//detects if a bean is in a slot, records it and removes it from the board
-		if(posMap[slotCount-1]!=NO_BEAN_IN_YPOS) {
-			slots[posMap[slotCount-1]]++;
-			int count=0;
-			for(int i=0;i<posMap[slotCount-1];i++) {
-				count+=slots[i];
+
+		// detects if a bean is in a slot, records it and removes it from the board
+		if (posMap[slotCount - 1] != NO_BEAN_IN_YPOS) {
+			slots[posMap[slotCount - 1]]++;
+			int count = 0;
+			for (int i = 0; i < posMap[slotCount - 1]; i++) {
+				count += slots[i];
 			}
 			inSlot.add(count, inFlight.pollLast());
-			posMap[slotCount-1]=NO_BEAN_IN_YPOS;
+			posMap[slotCount - 1] = NO_BEAN_IN_YPOS;
 		}
-		
-		if(!remainingBeans.isEmpty()) {
-			posMap[0]=0;
+
+		if (!remainingBeans.isEmpty()) {
+			posMap[0] = 0;
 			inFlight.addFirst(remainingBeans.remove());
-		}
-		else {
-			//adjusts padding if there are no more beans being added to the map and clears space behind it.
-			posMap[stepPadding]=NO_BEAN_IN_YPOS;
+		} else {
+			// adjusts padding if there are no more beans being added to the map and clears
+			// space behind it.
+			posMap[stepPadding] = NO_BEAN_IN_YPOS;
 			stepPadding++;
 		}
-		
+
 		return true;
 	}
 
