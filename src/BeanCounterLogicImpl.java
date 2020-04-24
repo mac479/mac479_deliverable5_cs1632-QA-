@@ -283,6 +283,17 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 			return false;
 		}
 
+		// detects if a bean is in a slot, records it and removes it from the board
+		if (posMap[slotCount - 1] != NO_BEAN_IN_YPOS) {
+			slots[posMap[slotCount - 1]]++;
+			int count = 0;
+			for (int i = 0; i < posMap[slotCount - 1]; i++) {
+				count += slots[i];
+			}
+			inSlot.add(count, inFlight.pollLast());
+			posMap[slotCount - 1] = NO_BEAN_IN_YPOS;
+		}
+
 		// Handle case of the map being 1 tall.
 		if (posMap.length == 1) {
 			// Bean is already technically in slot just need to be recorded
@@ -304,17 +315,6 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 			} else {
 				posMap[i + stepPadding + 1] = posMap[i + stepPadding];
 			}
-		}
-
-		// detects if a bean is in a slot, records it and removes it from the board
-		if (posMap[slotCount - 1] != NO_BEAN_IN_YPOS) {
-			slots[posMap[slotCount - 1]]++;
-			int count = 0;
-			for (int i = 0; i < posMap[slotCount - 1]; i++) {
-				count += slots[i];
-			}
-			inSlot.add(count, inFlight.pollLast());
-			posMap[slotCount - 1] = NO_BEAN_IN_YPOS;
 		}
 
 		if (!remainingBeans.isEmpty()) {
