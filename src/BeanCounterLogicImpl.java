@@ -279,8 +279,9 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 *         means the machine is finished.
 	 */
 	public boolean advanceStep() {// Detects if changes need to be made before acting.
-		if ((remainingBeans.isEmpty() && inFlight.isEmpty()) || noBean)
+		if ((remainingBeans.isEmpty() && inFlight.isEmpty()) || noBean) {
 			return false;
+		}
 
 		// Handle case of the map being 1 tall.
 		if (posMap.length == 1) {
