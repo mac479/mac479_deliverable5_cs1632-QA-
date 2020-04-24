@@ -11,9 +11,9 @@ import java.util.Random;
  * SKILL_STDEV. The formula to calculate the skill level is:
  * 
  * <p>
- * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5 SKILL_STDEV = (double)
- * Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5)) SKILL_LEVEL = (int)
- * Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
+ * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5
+ * SKILL_STDEV = (double) Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5))
+ * SKILL_LEVEL = (int) Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
  * 
  * <p>
  * A skill level of 9 means it always makes the "right" choices (pun intended)
@@ -51,7 +51,7 @@ public class BeanImpl implements Bean {
 		if (!isLuck) {
 			double skillAvg = (double) slotCount * 0.5;
 			double skillStDev = Math.sqrt((double) slotCount * 0.5 * (1.0 - 0.5));
-			initSkill = (int) Math.round(rand.nextGaussian() * skillStDev * skillAvg);
+			initSkill = (int) Math.round(rand.nextGaussian() * skillStDev + skillAvg);
 		} else {
 			initSkill = -1;
 		}

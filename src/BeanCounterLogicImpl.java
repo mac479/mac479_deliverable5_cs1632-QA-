@@ -278,7 +278,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @return whether there has been any status change. If there is no change, that
 	 *         means the machine is finished.
 	 */
-	public boolean advanceStep() {// Detects if changes need to be made before acting.
+	public boolean advanceStep() { // Detects if changes need to be made before acting.
 		if ((remainingBeans.isEmpty() && inFlight.isEmpty()) || noBean) {
 			return false;
 		}
