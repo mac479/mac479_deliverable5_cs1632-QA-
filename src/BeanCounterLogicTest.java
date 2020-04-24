@@ -68,6 +68,7 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testReset() {
+		System.out.println("testReset");
 		
 		logic.reset(beans);
 		if(beanCount>0) {													//If beanCount is greater than 0,
@@ -97,20 +98,21 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepCoordinates() {
+		System.out.println("testAdvanceStepCoordinates "+slotCount+" "+beanCount+" "+isLuck);
 		logic.reset(beans);
 		boolean flag=true;	//Used to detect if machine is done.
 		int high=0,low=slotCount-1;		//High is the y pos of the farthest possible bean, low is the y pos of the lowest possible bean. 
 		while(flag) {
 			flag=logic.advanceStep();
-			
 			for(int j=0;j<slotCount;j++) {
 				int pos=logic.getInFlightBeanXPos(j);
 				
 				if(j<(slotCount-low-1)||j>high){	//Beans will no longer appear on lower levels. i will begin to decrease
-					assertEquals(failString, pos, -1);				//Verifies no beans are on impossible levels.
+					assertEquals(failString+" "+low+" "+high, pos, -1);				//Verifies no beans are on impossible levels.
 				}
-				else
-					assertTrue(failString, pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
+				else if(slotCount!=1)
+					assertTrue(failString +" "+high+" "+low+" "+pos+" "+j, pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
+
 			}
 			
 			//Increment high or decrease low.
@@ -129,14 +131,16 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepBeanCount() {
+		System.out.println("testAdvanceStepBeanCount");
 		logic.reset(beans);
 		boolean flag=true;
 		while(flag) {
 			flag=logic.advanceStep();
 			
-			int count=0;	//Total beans in flight
+			int count=0;	//Total beans in flight and in slot
 			for(int i=0;i<slotCount;i++) {
 				if(logic.getInFlightBeanXPos(i)!=-1)	count++;
+				count+=logic.getSlotBeanCount(i);
 			}
 			assertEquals(failString, count+logic.getRemainingBeanCount(), beanCount);	//Assert the sum is equal to the total possible beans
 		}
@@ -154,6 +158,7 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepPostCondition() {
+		System.out.println("testAdvanceStepPostCondition");
 		logic.reset(beans);
 		
 		//Run machine until termination
@@ -182,6 +187,7 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testLowerHalf() {
+		System.out.println("testLowerHalf");
 		logic.reset(beans);
 
 		//Run machine until termination
@@ -221,6 +227,7 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testUpperHalf() {
+		System.out.println("testUpperHalf");
 		logic.reset(beans);
 		
 		//Run machine until termination
@@ -258,7 +265,7 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testRepeat() {
-		// TODO: Implement
+		System.out.println("testRepeat");
 		logic.reset(beans);
 		
 		//Run machine until termination

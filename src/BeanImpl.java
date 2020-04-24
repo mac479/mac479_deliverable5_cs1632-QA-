@@ -33,7 +33,10 @@ import java.util.Random;
  */
 
 public class BeanImpl implements Bean {
-	// TODO: Add member methods and variables as needed
+	private int initSkill;
+	private int currSkill;
+	private Random rng;
+	private boolean isLuck;
 
 	/**
 	 * Constructor - creates a bean in either luck mode or skill mode.
@@ -43,6 +46,33 @@ public class BeanImpl implements Bean {
 	 * @param rand   the random number generator
 	 */
 	BeanImpl(int slotCount, boolean isLuck, Random rand) {
-		// TODO: Implement
+		this.isLuck=isLuck;
+		rng=rand;
+		if(!isLuck) {
+			double skillAvg= (double)slotCount * 0.5;
+			double skillStDev= Math.sqrt((double)slotCount * 0.5 * (1-0.5));
+			initSkill=(int) Math.round(rand.nextGaussian() * skillStDev * skillAvg);
+		}
+		else
+			initSkill=-1;
+		currSkill=initSkill;
+	}
+	
+	//Returns false if the choice is left, true if right.
+	public boolean getChoice(){
+		if(isLuck) {
+			int choice=rng.nextInt(2);
+			if(choice==0)	return false;
+			return true;
+		}
+		if(currSkill>0) {
+			currSkill--;
+			return true;
+		}
+		return false;
+	}
+	
+	public void restart() {
+		currSkill=initSkill;
 	}
 }

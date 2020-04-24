@@ -33,7 +33,7 @@ public class TestRunner {
 
 			for (Failure f : r.getFailures()) {
 				System.out.println(f.toString());
-				//System.out.println(f.getTrace());
+				System.out.println(f.getTrace());
 			}
 
 			// If r is not successful, there was at least one
