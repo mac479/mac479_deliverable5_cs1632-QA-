@@ -101,23 +101,23 @@ public class BeanCounterLogicTest {
 		System.out.println("testAdvanceStepCoordinates "+slotCount+" "+beanCount+" "+isLuck);
 		logic.reset(beans);
 		boolean flag=true;	//Used to detect if machine is done.
-		int high=0,low=slotCount-1;		//High is the y pos of the farthest possible bean, low is the y pos of the lowest possible bean. 
+		int high=0,low=0;		//High is the y pos of the farthest possible bean, low is the y pos of the lowest possible bean. 
 		while(flag) {
+			//Increment low or decrease high.
+			if(logic.getRemainingBeanCount()==0)		low++;	
+			else if(high<slotCount-2)					high++;
+			
 			flag=logic.advanceStep();
 			for(int j=0;j<slotCount;j++) {
 				int pos=logic.getInFlightBeanXPos(j);
 				
-				if(j<(slotCount-low-1)||j>high){	//Beans will no longer appear on lower levels. i will begin to decrease
+				if(low<=j&&j<=high) {
+					assertTrue(failString +" "+high+" "+low+" "+pos+" "+j+" "+logic.getRemainingBeanCount(), pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
+				}
+				else {
 					assertEquals(failString+" "+low+" "+high, pos, -1);				//Verifies no beans are on impossible levels.
 				}
-				else if(slotCount!=1)
-					assertTrue(failString +" "+high+" "+low+" "+pos+" "+j, pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
-
 			}
-			
-			//Increment high or decrease low.
-			if(logic.getRemainingBeanCount()==0)		low--;	
-			else if(high<slotCount-1)					high++;
 		}
 	}
 
@@ -275,7 +275,9 @@ public class BeanCounterLogicTest {
 		}
 		
 		int[] slots=new int[slotCount];
-		for(int i=0;i<slotCount;i++)	slots[i]=logic.getSlotBeanCount(i);		//Record normal slot count for testing
+		for(int i=0;i<slotCount;i++) {
+			slots[i]=logic.getSlotBeanCount(i);		//Record normal slot count for testing
+		}
 		logic.repeat();
 		
 		//Run machine until termination
@@ -284,7 +286,9 @@ public class BeanCounterLogicTest {
 			flag=logic.advanceStep();
 		}
 		if(!isLuck) {
-			for(int i=0;i<slotCount;i++)	assertEquals(failString, slots[i],logic.getSlotBeanCount(i));
+			for(int i=0;i<slotCount;i++) {
+				assertEquals(failString, slots[i],logic.getSlotBeanCount(i));
+			}
 		}
 	}
 }

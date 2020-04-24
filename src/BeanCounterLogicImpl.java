@@ -39,6 +39,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	private LinkedList<BeanImpl> inSlot;
 	private LinkedList<BeanImpl> inFlight;
 	private int[] posMap; // Map of beans x coords at posMap[Y]
+	private boolean noBean;
 
 	private int stepPadding = 0; // padding to help step through the last few iterations
 
@@ -166,6 +167,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		for (int i = 0; i < posMap.length; i++)
 			posMap[i] = NO_BEAN_IN_YPOS; // Clears position map.
 		inFlight = new LinkedList<BeanImpl>();
+		inFlight.clear();
 		inSlot = new LinkedList<BeanImpl>();
 		totalBeans = beans.length;
 
@@ -174,11 +176,14 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 				remainingBeans.add((BeanImpl) beans[i]);
 		}
 		if (totalBeans != 0) {
+			noBean=false;
 			posMap[0] = 0;
 			inFlight.offerFirst(remainingBeans.remove()); // Pops front of queue to top of map.
 		}
-		else
+		else {
 			posMap[0]=NO_BEAN_IN_YPOS;
+			noBean=true;
+		}
 		// System.err.println("--------------------------------------------
 		// "+slotCount+" "+inFlight.size()+" "+posMap[slotCount-1]!=NO_BEAN_IN_YPOS+"
 		// "+posMap.length);
@@ -208,10 +213,14 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		}
 
 		if (totalBeans != 0) {
+			noBean=false;
 			posMap[0] = 0;
 			inFlight.offerFirst(remainingBeans.remove()); // Pops front of queue to top of map.
 		}
-
+		else {
+			posMap[0]=NO_BEAN_IN_YPOS;
+			noBean=true;
+		}
 	}
 
 	/**
@@ -222,20 +231,68 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @return whether there has been any status change. If there is no change, that
 	 *         means the machine is finished.
 	 */
-	public boolean advanceStep() {
-		// Detects if changes need to be made before acting.
-		if (remainingBeans.isEmpty() && inFlight.isEmpty())
+	public boolean advanceStep() {// Detects if changes need to be made before acting.
+		if ((remainingBeans.isEmpty() && inFlight.isEmpty())||noBean)
 			return false;
 
+		//Handle case of the map being 1 tall.
+		if(posMap.length==1) {
+			//Bean is already technically in slot just need to be recorded
+			slots[0]++;
+			inSlot.add(inFlight.pollLast());
+			if(!remainingBeans.isEmpty()) {
+				posMap[0]=0;
+				inFlight.addFirst(remainingBeans.remove());
+			}
+			else {
+				posMap[0]=NO_BEAN_IN_YPOS;
+			}
+			return true;
+		}
+		
+		//Step beans down if possible
+		for(int i=inFlight.size()-1;i>=0 && posMap.length!=1;i--) {
+			if(inFlight.get(i).getChoice()) {
+				posMap[i+stepPadding+1]=posMap[i+stepPadding]+1;
+			}
+			else {
+				posMap[i+stepPadding+1]=posMap[i+stepPadding];
+			}
+		}
+		
+		//detects if a bean is in a slot, records it and removes it from the board
+		if(posMap[slotCount-1]!=NO_BEAN_IN_YPOS) {
+			slots[posMap[slotCount-1]]++;
+			int count=0;
+			for(int i=0;i<posMap[slotCount-1];i++) {
+				count+=slots[i];
+			}
+			inSlot.add(count, inFlight.pollLast());
+			posMap[slotCount-1]=NO_BEAN_IN_YPOS;
+		}
+		
+		if(!remainingBeans.isEmpty()) {
+			posMap[0]=0;
+			inFlight.addFirst(remainingBeans.remove());
+		}
+		else {
+			//adjusts padding if there are no more beans being added to the map and clears space behind it.
+			posMap[stepPadding]=NO_BEAN_IN_YPOS;
+			stepPadding++;
+		}
+		
+		return true;
+		
+		/*
 		// First gets choices and sets next position starting from the bottom up.
-		for (int i = inFlight.size() - 1 + stepPadding; i >= stepPadding && posMap.length != 1; i--) {
-			System.out.println(i+" "+stepPadding+" "+posMap.length);
+		for (int i = inFlight.size() - 1; i >= stepPadding && posMap.length != 1; i--) {
+			System.out.println(i+" STEP "+stepPadding+" "+posMap.length);
 			if (inFlight.get(i).getChoice())
-				posMap[i + 1] = posMap[i] + 1;
+				posMap[i+ stepPadding+1] = posMap[i+ stepPadding] + 1;
 			else
-				posMap[i + 1] = posMap[i];
+				posMap[i+ stepPadding+1] = posMap[i+ stepPadding];
 			if (i == stepPadding && remainingBeans.isEmpty())
-				posMap[i] = NO_BEAN_IN_YPOS;
+				posMap[i+ stepPadding+1] = NO_BEAN_IN_YPOS;
 		}
 		// Check if one bean fell into a slot, record its slot, and then remove it from
 		// map.
@@ -256,8 +313,8 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		}
 		else
 			stepPadding++;
-
-		return true;
+*/
+		//return true;
 	}
 
 	/**

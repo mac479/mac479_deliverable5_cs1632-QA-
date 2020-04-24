@@ -11,9 +11,9 @@ import java.util.Random;
  * SKILL_STDEV. The formula to calculate the skill level is:
  * 
  * <p>
- * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5
- * SKILL_STDEV = (double) Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5))
- * SKILL_LEVEL = (int) Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
+ * SKILL_AVERAGE = (double) SLOT_COUNT * 0.5 SKILL_STDEV = (double)
+ * Math.sqrt(SLOT_COUNT * 0.5 * (1 - 0.5)) SKILL_LEVEL = (int)
+ * Math.round(rand.nextGaussian() * SKILL_STDEV + SKILL_AVERAGE)
  * 
  * <p>
  * A skill level of 9 means it always makes the "right" choices (pun intended)
@@ -42,37 +42,38 @@ public class BeanImpl implements Bean {
 	 * Constructor - creates a bean in either luck mode or skill mode.
 	 * 
 	 * @param slotCount the number of slots in the machine
-	 * @param isLuck whether the bean is in luck mode
-	 * @param rand   the random number generator
+	 * @param isLuck    whether the bean is in luck mode
+	 * @param rand      the random number generator
 	 */
 	BeanImpl(int slotCount, boolean isLuck, Random rand) {
-		this.isLuck=isLuck;
-		rng=rand;
-		if(!isLuck) {
-			double skillAvg= (double)slotCount * 0.5;
-			double skillStDev= Math.sqrt((double)slotCount * 0.5 * (1-0.5));
-			initSkill=(int) Math.round(rand.nextGaussian() * skillStDev * skillAvg);
+		this.isLuck = isLuck;
+		rng = rand;
+		if (!isLuck) {
+			double skillAvg = (double) slotCount * 0.5;
+			double skillStDev = Math.sqrt((double) slotCount * 0.5 * (1 - 0.5));
+			initSkill = (int) Math.round(rand.nextGaussian() * skillStDev * skillAvg);
+		} else {
+			initSkill = -1;
 		}
-		else
-			initSkill=-1;
-		currSkill=initSkill;
+		currSkill = initSkill;
 	}
-	
-	//Returns false if the choice is left, true if right.
-	public boolean getChoice(){
-		if(isLuck) {
-			int choice=rng.nextInt(2);
-			if(choice==0)	return false;
+
+	// Returns false if the choice is left, true if right.
+	public boolean getChoice() {
+		if (isLuck) {
+			int choice = rng.nextInt(2);
+			if (choice == 0)
+				return false;
 			return true;
 		}
-		if(currSkill>0) {
+		if (currSkill > 0) {
 			currSkill--;
 			return true;
 		}
 		return false;
 	}
-	
+
 	public void restart() {
-		currSkill=initSkill;
+		currSkill = initSkill;
 	}
 }
