@@ -4,6 +4,7 @@ import gov.nasa.jpf.vm.Verify;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.Random;
 
@@ -30,15 +31,11 @@ public class BeanCounterLogicTest {
 	 */
 	@BeforeClass
 	public static void setUp() {
-		/*
-		 * TODO: Use the Java Path Finder Verify API to generate choices for slotCount,
-		 * beanCount, and isLuck: slotCount should take values 1-5, beanCount should
-		 * take values 0-3, and isLucky should be either true or false. For reference on
-		 * how to use the Verify API, look at:
-		 * https://github.com/javapathfinder/jpf-core/wiki/Verify-API-of-JPF
-		 */
 		
-				
+		slotCount=Verify.getInt(1, 5);	//Set slotcounter to values 1-5
+		beanCount=Verify.getInt(0,3);	//Set beanCounter to values 0-3
+		isLuck=Verify.getBoolean();		//Set is luck as either true or false.
+		
 		// Create the internal logic
 		logic = BeanCounterLogic.createInstance(slotCount);
 		// Create the beans
@@ -71,22 +68,23 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testReset() {
-		// TODO: Implement
-		/*
-		 * Currently, it just prints out the failString to demonstrate to you all the
-		 * cases considered by Java Path Finder. If you called the Verify API correctly
-		 * in setUp(), you should see all combinations of machines
-		 * (slotCount/beanCount/isLucky) printed here:
-		 * 
-		 * Failure in (slotCount=1, beanCount=0, isLucky=false):
-		 * Failure in (slotCount=1, beanCount=0, isLucky=true):
-		 * Failure in (slotCount=1, beanCount=1, isLucky=false):
-		 * Failure in (slotCount=1, beanCount=1, isLucky=true):
-		 * ...
-		 * 
-		 * PLEASE REMOVE when you are done implementing.
-		 */
-		System.out.println(failString);
+		
+		logic.reset(beans);
+		if(beanCount>0) {													//If beanCount is greater than 0,
+			assertEquals(failString, logic.getRemainingBeanCount(), beanCount-1);		//remaining bean count is beanCount - 1
+			assertEquals(failString, logic.getInFlightBeanXPos(0),0);					//in-flight bean is at top
+			for(int i=0;i<slotCount;i++) {
+				assertEquals(failString, logic.getSlotBeanCount(i),0);					//in-slot bean count is 0.
+				if(i!=0)	assertEquals(failString, logic.getInFlightBeanXPos(i),-1);	//Verifies no in flight beans on any lower levels
+			}
+		}
+		if(beanCount==0) {		//If beanCount is 0,
+			assertEquals(failString, logic.getRemainingBeanCount(),0);		//remaining bean count is 0.
+			for(int i=0;i<slotCount;i++) {
+				assertEquals(failString, logic.getSlotBeanCount(i),0);		//in-slot bean count is 0.
+				assertEquals(failString, logic.getInFlightBeanXPos(i),-1);	//Verifies no in flight beans
+			}
+		}
 	}
 
 	/**
@@ -99,7 +97,26 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepCoordinates() {
-		// TODO: Implement
+		logic.reset(beans);
+		boolean flag=true;	//Used to detect if machine is done.
+		int high=0,low=slotCount-1;		//High is the y pos of the farthest possible bean, low is the y pos of the lowest possible bean. 
+		while(flag) {
+			flag=logic.advanceStep();
+			
+			for(int j=0;j<slotCount;j++) {
+				int pos=logic.getInFlightBeanXPos(j);
+				
+				if(j<(slotCount-low-1)||j>high){	//Beans will no longer appear on lower levels. i will begin to decrease
+					assertEquals(failString, pos, -1);				//Verifies no beans are on impossible levels.
+				}
+				else
+					assertTrue(failString, pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
+			}
+			
+			//Increment high or decrease low.
+			if(logic.getRemainingBeanCount()==0)		low--;	
+			else if(high<slotCount-1)					high++;
+		}
 	}
 
 	/**
@@ -112,7 +129,17 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepBeanCount() {
-		// TODO: Implement
+		logic.reset(beans);
+		boolean flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+			
+			int count=0;	//Total beans in flight
+			for(int i=0;i<slotCount;i++) {
+				if(logic.getInFlightBeanXPos(i)!=-1)	count++;
+			}
+			assertEquals(failString, count+logic.getRemainingBeanCount(), beanCount);	//Assert the sum is equal to the total possible beans
+		}
 	}
 
 	/**
@@ -127,7 +154,19 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepPostCondition() {
-		// TODO: Implement
+		logic.reset(beans);
+		
+		//Run machine until termination
+		boolean flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+		}
+		
+		int count=0;	//Counter variable for total beans to help with assertions.
+		assertEquals(failString, logic.getRemainingBeanCount(),0);	//No remaining beans
+		for(int i=0;i<slotCount;i++)	assertEquals(failString, logic.getInFlightBeanXPos(i), -1);	//No beans in flight
+		for(int i=0;i<slotCount;i++)	count+=logic.getSlotBeanCount(i);
+		assertEquals(failString, count,beanCount);
 	}
 	
 	/**
@@ -143,7 +182,30 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testLowerHalf() {
-		// TODO: Implement
+		logic.reset(beans);
+
+		//Run machine until termination
+		boolean flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+		}
+
+		int[] slots=new int[slotCount];
+		for(int i=0;i<slotCount;i++)	slots[i]=logic.getSlotBeanCount(i);		//Record normal slot count for testing
+		logic.lowerHalf();
+
+		int count=(beanCount%2==1) ? (beanCount+1)/2 : beanCount/2;
+		int remain=0;
+		for(int i=0;i<slotCount;i++) {
+			count-=logic.getSlotBeanCount(i);
+			if(count==0)
+				remain=i;
+		}
+		assertEquals(failString, count, 0);																//First verifies correct amount of beans remain.
+		assertTrue(failString, slots[remain]>=logic.getSlotBeanCount(remain));							//Verifies final cell with beans has decreased at least.
+		for(int i=remain+1;i<slotCount;i++)		assertEquals(failString, logic.getSlotBeanCount(i),0);	//Makes sure no beans remain in the upper half.
+		
+		
 	}
 	
 	/**
@@ -159,7 +221,29 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testUpperHalf() {
-		// TODO: Implement
+		logic.reset(beans);
+		
+		//Run machine until termination
+		boolean flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+		}
+		
+		int[] slots=new int[slotCount];
+		for(int i=0;i<slotCount;i++)	slots[i]=logic.getSlotBeanCount(i);		//Record normal slot count for testing
+		logic.lowerHalf();
+		
+		int count=(beanCount%2==1) ? (beanCount+1)/2 : beanCount/2;
+		int remain=0;
+		for(int i=slotCount-1;i>=0;i--) {
+			count-=logic.getSlotBeanCount(i);
+			if(count==0)
+				remain=i;
+		}
+		assertEquals(failString, count, 0);																//First verifies correct amount of beans remain.
+		assertTrue(failString, slots[remain]>=logic.getSlotBeanCount(remain));							//Verifies final cell with beans has decreased at least.
+		for(int i=remain-1;i>=0;i++)		assertEquals(failString, logic.getSlotBeanCount(i),0);		//Makes sure no beans remain in the lower half.
+		
 	}
 	
 	/**
@@ -175,5 +259,25 @@ public class BeanCounterLogicTest {
 	@Test
 	public void testRepeat() {
 		// TODO: Implement
+		logic.reset(beans);
+		
+		//Run machine until termination
+		boolean flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+		}
+		
+		int[] slots=new int[slotCount];
+		for(int i=0;i<slotCount;i++)	slots[i]=logic.getSlotBeanCount(i);		//Record normal slot count for testing
+		logic.repeat();
+		
+		//Run machine until termination
+		flag=true;
+		while(flag) {
+			flag=logic.advanceStep();
+		}
+		if(!isLuck) {
+			for(int i=0;i<slotCount;i++)	assertEquals(failString, slots[i],logic.getSlotBeanCount(i));
+		}
 	}
 }
