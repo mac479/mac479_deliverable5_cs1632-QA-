@@ -68,7 +68,6 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testReset() {
-		System.out.println("testReset");
 		
 		logic.reset(beans);
 		if(beanCount>0) {													//If beanCount is greater than 0,
@@ -98,24 +97,28 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepCoordinates() {
-		System.out.println("testAdvanceStepCoordinates "+slotCount+" "+beanCount+" "+isLuck);
 		logic.reset(beans);
 		boolean flag=true;	//Used to detect if machine is done.
 		int high=0,low=0;		//High is the y pos of the farthest possible bean, low is the y pos of the lowest possible bean. 
 		while(flag) {
 			//Increment low or decrease high.
-			if(logic.getRemainingBeanCount()==0)		low++;	
-			else if(high<slotCount-2)					high++;
+			if(logic.getRemainingBeanCount()==0) {
+				low++;	
+			}
+			if(high<slotCount-2) {
+				high++;
+			}
 			
 			flag=logic.advanceStep();
 			for(int j=0;j<slotCount;j++) {
 				int pos=logic.getInFlightBeanXPos(j);
 				
-				if(low<=j&&j<=high) {
-					assertTrue(failString +" "+high+" "+low+" "+pos+" "+j+" "+logic.getRemainingBeanCount(), pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
+				//Checks if there are beans to drop and loop is looking at correct area of map.
+				if(low<=j&&j<=high&&beanCount!=0) {
+					assertTrue(failString, pos > -1 && pos <=j);	//Verify each level that can have an in-flight bean is within the correct bounds.	
 				}
 				else {
-					assertEquals(failString+" "+low+" "+high, pos, -1);				//Verifies no beans are on impossible levels.
+					assertEquals(failString, -1, pos);				//Verifies no beans are on impossible levels.
 				}
 			}
 		}
@@ -131,7 +134,6 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepBeanCount() {
-		System.out.println("testAdvanceStepBeanCount");
 		logic.reset(beans);
 		boolean flag=true;
 		while(flag) {
@@ -158,7 +160,6 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testAdvanceStepPostCondition() {
-		System.out.println("testAdvanceStepPostCondition");
 		logic.reset(beans);
 		
 		//Run machine until termination
@@ -187,7 +188,6 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testLowerHalf() {
-		System.out.println("testLowerHalf");
 		logic.reset(beans);
 
 		//Run machine until termination
@@ -227,7 +227,6 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testUpperHalf() {
-		System.out.println("testUpperHalf");
 		logic.reset(beans);
 		
 		//Run machine until termination
@@ -265,12 +264,13 @@ public class BeanCounterLogicTest {
 	 */
 	@Test
 	public void testRepeat() {
-		System.out.println("testRepeat");
+		//System.out.println("testRepeat");
 		logic.reset(beans);
 		
 		//Run machine until termination
 		boolean flag=true;
 		while(flag) {
+			//System.out.println(slotCount+" "+beanCount+" "+isLuck);
 			flag=logic.advanceStep();
 		}
 		

@@ -62,8 +62,9 @@ public class BeanImpl implements Bean {
 	public boolean getChoice() {
 		if (isLuck) {
 			int choice = rng.nextInt(2);
-			if (choice == 0)
+			if (choice == 0) {
 				return false;
+			}
 			return true;
 		}
 		if (currSkill > 0) {

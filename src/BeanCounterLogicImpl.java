@@ -164,16 +164,20 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		remainingBeans = new LinkedList<BeanImpl>();
 		slots = new int[slotCount];
 		posMap = new int[slotCount];
-		for (int i = 0; i < posMap.length; i++)
+		for (int i = 0; i < posMap.length; i++) {
 			posMap[i] = NO_BEAN_IN_YPOS; // Clears position map.
+		}
 		inFlight = new LinkedList<BeanImpl>();
 		inFlight.clear();
 		inSlot = new LinkedList<BeanImpl>();
 		totalBeans = beans.length;
 
 		for (int i = 0; i < totalBeans; i++) {
-			if (beans[i] != null)
-				remainingBeans.add((BeanImpl) beans[i]);
+			if (beans[i] != null) {
+				BeanImpl newBean=(BeanImpl) beans[i];
+				newBean.restart();
+				remainingBeans.add(newBean);
+			}
 		}
 		if (totalBeans != 0) {
 			noBean=false;
@@ -199,8 +203,9 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		stepPadding=0;
 		slots = new int[slotCount];
 		posMap = new int[slotCount];
-		for (int i = 0; i < posMap.length; i++)
+		for (int i = 0; i < posMap.length; i++) {
 			posMap[i] = NO_BEAN_IN_YPOS; // Clears position map.
+		}
 		inFlight = new LinkedList<BeanImpl>();
 
 		while (!inSlot.isEmpty()) {
@@ -231,6 +236,7 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 	 * @return whether there has been any status change. If there is no change, that
 	 *         means the machine is finished.
 	 */
+	//TODO current method is taking way longer than it should
 	public boolean advanceStep() {// Detects if changes need to be made before acting.
 		if ((remainingBeans.isEmpty() && inFlight.isEmpty())||noBean)
 			return false;
@@ -282,39 +288,6 @@ public class BeanCounterLogicImpl implements BeanCounterLogic {
 		}
 		
 		return true;
-		
-		/*
-		// First gets choices and sets next position starting from the bottom up.
-		for (int i = inFlight.size() - 1; i >= stepPadding && posMap.length != 1; i--) {
-			System.out.println(i+" STEP "+stepPadding+" "+posMap.length);
-			if (inFlight.get(i).getChoice())
-				posMap[i+ stepPadding+1] = posMap[i+ stepPadding] + 1;
-			else
-				posMap[i+ stepPadding+1] = posMap[i+ stepPadding];
-			if (i == stepPadding && remainingBeans.isEmpty())
-				posMap[i+ stepPadding+1] = NO_BEAN_IN_YPOS;
-		}
-		// Check if one bean fell into a slot, record its slot, and then remove it from
-		// map.
-		if (posMap[slotCount - 1] != NO_BEAN_IN_YPOS) {
-			slots[posMap[slotCount - 1]]++; // Increase slot count recording bean.
-			int count = 0;
-			for (int i = 0; i < posMap[slotCount - 1]; i++)
-				count += slots[i]; // Gets index to insert new bean at.
-			inSlot.add(count, inFlight.removeLast()); // Removes bean from map and inserts it at the end index of the
-														// slot it fell in.
-			posMap[slotCount - 1] = NO_BEAN_IN_YPOS;
-
-		}
-		// Grab a new bean for the head
-		if (!remainingBeans.isEmpty()) {
-			inFlight.offerFirst(remainingBeans.remove());
-			posMap[0]=0;
-		}
-		else
-			stepPadding++;
-*/
-		//return true;
 	}
 
 	/**
