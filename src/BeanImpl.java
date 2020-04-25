@@ -58,7 +58,11 @@ public class BeanImpl implements Bean {
 		currSkill = initSkill;
 	}
 
-	// Returns false if the choice is left, true if right.
+	/**
+	 * getChoice - gets the choice of a bean based on luck or skill
+	 * 
+	 * @return choice	the decision made by the bean, false means left true means right.
+	 */
 	public boolean getChoice() {
 		if (isLuck) {
 			int choice = rng.nextInt(2);
