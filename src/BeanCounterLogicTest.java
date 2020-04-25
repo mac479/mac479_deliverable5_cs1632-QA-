@@ -46,7 +46,8 @@ public class BeanCounterLogicTest {
 		}
 
 		// A failstring useful to pass to assertions to get a more descriptive error.
-		failString = "Failure in (slotCount=" + slotCount + ", beanCount=" + beanCount + ", isLucky=" + isLuck + "):";
+		failString = "Failure in (slotCount=" + slotCount + ", beanCount="
+					+ beanCount + ", isLucky=" + isLuck + "):";
 	}
 
 	@AfterClass
